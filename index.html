@@ -5,55 +5,78 @@
     <title>DT Quizzes</title>
     <style>
         body {
-            font-family: Arial, sans-serif;
+            font-family: 'Arial', sans-serif;
             display: flex;
             justify-content: center;
             align-items: center;
             min-height: 100vh;
             margin: 0;
-            background: linear-gradient(135deg, #D2B48C, #DEB887);
+            background: linear-gradient(135deg, #f1e4c8, #e3c29b);
             color: #4E342E;
             text-align: center;
         }
         .container {
-            background: rgba(255, 255, 255, 0.9);
-            border-radius: 15px;
-            padding: 40px;
-            box-shadow: 0 8px 32px 0 rgba(94, 38, 18, 0.3);
-            max-width: 400px;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 8px 32px rgba(94, 38, 18, 0.3);
+            max-width: 700px;
             width: 90%;
+            text-align: center;
+            animation: fadeIn 1s ease-in-out;
         }
         h1 {
-            font-size: 2.5em;
+            font-size: 1.8em;
+            color: #5a3a2e;
             margin-bottom: 30px;
         }
+        .quiz-options {
+            display: flex;
+            justify-content: space-around;
+            gap: 20px;
+        }
         .quiz-option {
-            background: rgba(210, 180, 140, 0.8);
-            border: none;
-            padding: 20px;
-            border-radius: 8px;
+            background: #D2B48C;
+            border-radius: 15px;
+            padding: 30px;
             color: #4E342E;
-            font-size: 2em;
+            font-size: 1.2em;
+            width: 40%;
             cursor: pointer;
-            width: 100%;
-            margin: 15px 0;
-            transition: all 0.3s ease;
-            text-align: center;
             text-decoration: none;
-            display: block;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
         }
         .quiz-option:hover {
-            background: rgba(210, 180, 140, 1);
-            transform: translateY(-2px);
+            background: #C6A77C;
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
+            transform: translateY(-3px);
+        }
+        .quiz-option span {
+            font-size: 4em; /* Increased font size for larger emojis */
+            display: block;
+            margin-bottom: 10px;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
         }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h1>Pick a Quiz</h1>
-    <a href="popartclockcutsand.html" class="quiz-option">🕰️ Pop Art Clock Cut and Sand</a>
-    <a href="photoframecutsand.html" class="quiz-option">🖼️ Photoframe Cut and Sand</a>
+    <h1>Quiz on Cutting & Sanding</h1>
+    <div class="quiz-options">
+        <a href="popartclockcutsand.html" class="quiz-option">
+            <span>🕰️</span>
+            Pop Art Clock
+        </a>
+        <a href="photoframecutsand.html" class="quiz-option">
+            <span>🖼️</span>
+            Photoframe
+        </a>
+    </div>
 </div>
 
 </body>
