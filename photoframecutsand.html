@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Photoframe Making Quiz</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            background: linear-gradient(135deg, #D2B48C, #DEB887);
+            color: #4E342E;
+        }
+        .quiz-container {
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 8px 32px 0 rgba(94, 38, 18, 0.3);
+            max-width: 800px;
+            width: 90%;
+            text-align: center;
+        }
+        .question {
+            font-size: 1.3em;
+            margin-bottom: 20px;
+            font-weight: bold;
+        }
+        .options button {
+            background: rgba(210, 180, 140, 0.8);
+            border: none;
+            padding: 12px;
+            border-radius: 8px;
+            color: #4E342E;
+            font-size: 1em;
+            cursor: pointer;
+            width: 100%;
+            margin-bottom: 10px;
+            transition: all 0.3s ease;
+        }
+        .options button:hover {
+            background: rgba(210, 180, 140, 1);
+            transform: translateY(-2px);
+        }
+        .correct { background: #98FB98 !important; color: #4E342E !important; }
+        .incorrect { background: #FF6347 !important; }
+        #nextBtn { display: none; margin-top: 15px; padding: 12px 24px; background: #DEB887; }
+        .progress-bar {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+        .indicator {
+            width: 15px;
+            height: 15px;
+            background-color: #d2b48c;
+            margin: 2px;
+            border-radius: 50%;
+        }
+        .indicator.correct { background-color: #98FB98; }
+        .indicator.incorrect { background-color: #FF6347; }
+        .indicator.current { border: 2px solid #4E342E; }
+    </style>
+</head>
+<body>
+
+<div class="quiz-container">
+    <div class="progress-bar" id="progress-bar"></div>
+    <div id="question-container">
+        <p class="question" id="question"></p>
+        <div class="options" id="options"></div>
+    </div>
+    <button id="nextBtn" onclick="nextQuestion()">Next</button>
+    <div id="result"></div>
+</div>
+
+<script>
+    const quizData = [
+        { question: "🛠️ Our photoframes have 4 ______ joints.", options: ["mitre", "butt", "finger", "dovetail"], correct: 0 },
+        { question: "📏 A mitre joint joins 2 pieces of wood at ______ degree angles.", options: ["90", "45", "30", "60"], correct: 1 },
+        { question: "👕 We wear the personal protective equipment (PPE) _____ to protect our body from _______.", options: ["apron, debris", "ear defender, wood dust", "ear defender, debris", "apron, dirt"], correct: 0 },
+        { question: "🕶️ The personal protective equipment (PPE) ______ protects our eyes at the disc sander.", options: ["apron, debris", "ear defender", "goggles", "safety goggles"], correct: 3 },
+        { question: "🪚 We use _____ to cut the mitre joints. It's heavier than coping saw and better for cutting ______ lines.", options: ["tenon saw, curve", "tenon saw, straight", "band saw, curve", "band saw, straight"], correct: 1 },
+        { question: "✏️ We use ____ to mark the mitre joints.", options: ["pencil and ruler", "pen", "marker and ruler", "pencil"], correct: 0 },
+        { question: "🔧 We use ____ to hold the jigs.", options: ["a clamp", "the vice", "our hands", "two clamps"], correct: 3 },
+        { question: "🛠️ We start cutting _____ to ______.", options: ["quickly, make a narrow dent for blade to fit in", "slowly, make a narrow dent for blade to fit in", "quickly, finish ASAP", "slowly, make a wide dent for blade to fit in"], correct: 1 },
+        { question: "🧽 The roughness order of abrasive materials on sanding tools from low to high is _______.", options: ["disc sander, filer, sand paper", "sand paper, filer, disc sander", "filer, sand paper, disc sander", "sand paper, filer, disc sander"], correct: 1 },
+        { question: "📐 Cross filing is when file movement is ______ to file. Draw filing is when file movement is ______ to file.", options: ["parallel, perpendicular", "perpendicular, parallel"], correct: 1 },
+        { question: "🤎 ____ filing reshapes, ____ smoothens.", options: ["draw, cross", "cross, draw"], correct: 1 },
+        { question: "📏 First, mark each piece ___cm long with gaps for sanding.", options: ["20", "19", "18", "17"], correct: 1 },
+        { question: "✂️ Mark 45-degree lines to make a _____.", options: ["trapezium", "parallelogram", "rectangle"], correct: 2 },
+        { question: "📐 The _____ side of the piece should be 19cm.", options: ["longer", "shorter"], correct: 0 },
+        { question: "📝 Finally, we _____ the waste area.", options: ["hash out", "colour", "trace down", "label"], correct: 0 },
+        { question: "🪚 We ____ cut on the mark because we’ll sand it to the mark later.", options: ["do", "don't"], correct: 1 }
+    ];
+
+    let currentQuestionIndex = 0;
+    let score = 0;
+
+    function initializeProgressBar() {
+        const progressBar = document.getElementById('progress-bar');
+        quizData.forEach((_, i) => {
+            const indicator = document.createElement('div');
+            indicator.classList.add('indicator');
+            if (i === 0) indicator.classList.add('current');
+            progressBar.appendChild(indicator);
+        });
+    }
+
+    function updateProgressBar(isCorrect) {
+        const indicators = document.querySelectorAll('.indicator');
+        indicators[currentQuestionIndex].classList.remove('current');
+        indicators[currentQuestionIndex].classList.add(isCorrect ? 'correct' : 'incorrect');
+        if (currentQuestionIndex + 1 < quizData.length) {
+            indicators[currentQuestionIndex + 1].classList.add('current');
+        }
+    }
+
+    function loadQuestion() {
+        const questionObj = quizData[currentQuestionIndex];
+        document.getElementById('question').innerText = questionObj.question;
+        const optionsDiv = document.getElementById('options');
+        optionsDiv.innerHTML = '';
+
+        questionObj.options.forEach((option, idx) => {
+            const button = document.createElement('button');
+            button.innerText = option;
+            button.onclick = () => checkAnswer(idx);
+            optionsDiv.appendChild(button);
+        });
+        document.getElementById('nextBtn').style.display = 'none';
+    }
+
+    function checkAnswer(selectedIndex) {
+        const questionObj = quizData[currentQuestionIndex];
+        const options = document.querySelectorAll('#options button');
+        options.forEach(button => button.disabled = true);
+
+        const isCorrect = selectedIndex === questionObj.correct;
+        options[selectedIndex].classList.add(isCorrect ? 'correct' : 'incorrect');
+        if (!isCorrect) options[questionObj.correct].classList.add('correct');
+
+        updateProgressBar(isCorrect);
+        if (isCorrect) score++;
+
+        document.getElementById('nextBtn').style.display = 'inline-block';
+    }
+
+    function nextQuestion() {
+        currentQuestionIndex++;
+        if (currentQuestionIndex < quizData.length) {
+            loadQuestion();
+        } else {
+            showResults();
+        }
+    }
+
+    function showResults() {
+        document.getElementById('question-container').innerHTML = '';
+        document.getElementById('nextBtn').style.display = 'none';
+        document.getElementById('result').innerText = `You scored ${score} out of ${quizData.length}.`;
+    }
+
+    initializeProgressBar();
+    loadQuestion();
+</script>
+
+</body>
+</html>
