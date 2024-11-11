@@ -46,7 +46,8 @@
         }
         .correct { background: #98FB98 !important; color: #4E342E !important; }
         .incorrect { background: #FF6347 !important; }
-        #nextBtn { display: none; margin-top: 15px; padding: 12px 24px; background: #DEB887; }
+        #nextBtn { display: none; margin-top: 15px; padding: 12px 24px; background: #DEB887; cursor: pointer; border: none; border-radius: 8px; font-size: 1em; }
+        #nextBtn:hover { background: #d1a679; }
         .progress-bar {
             display: flex;
             justify-content: center;
@@ -58,10 +59,21 @@
             background-color: #d2b48c;
             margin: 2px;
             border-radius: 50%;
+            cursor: pointer;
+            transition: background-color 0.3s ease, transform 0.3s ease;
         }
-        .indicator.correct { background-color: #98FB98; }
-        .indicator.incorrect { background-color: #FF6347; }
+        .indicator:hover {
+            transform: scale(1.2);
+        }
+        .indicator.correct { background-color: #98FB98; cursor: default; }
+        .indicator.incorrect { background-color: #FF6347; cursor: default; }
         .indicator.current { border: 2px solid #4E342E; }
+        .indicator.disabled { cursor: default; }
+        #result {
+            margin-top: 20px;
+            font-size: 1.2em;
+            font-weight: bold;
+        }
     </style>
 </head>
 <body>
@@ -86,8 +98,8 @@
         { question: "✏️ We use ____ to mark the mitre joints.", options: ["pencil and ruler", "pen", "marker and ruler", "pencil"], correct: 0 },
         { question: "🔧 We use ____ to hold the jigs.", options: ["a clamp", "the vice", "our hands", "two clamps"], correct: 3 },
         { question: "🛠️ We start cutting _____ to ______.", options: ["quickly, make a narrow dent for blade to fit in", "slowly, make a narrow dent for blade to fit in", "quickly, finish ASAP", "slowly, make a wide dent for blade to fit in"], correct: 1 },
-        { question: "🧽 The roughness order of abrasive materials on sanding tools from low to high is _______.", options: ["disc sander, filer, sand paper", "sand paper, filer, disc sander", "filer, sand paper, disc sander", "sand paper, filer, disc sander"], correct: 1 },
-        { question: "📐 Cross filing is when file movement is ______ to file. Draw filing is when file movement is ______ to file.", options: ["parallel, perpendicular", "perpendicular, parallel"], correct: 1 },
+        { question: "🧽 The roughness order of abrasive materials on sanding tools from low to high is _______.", options: ["disc sander, filer, sand paper", "sand paper, filer, disc sander", "filer, sand paper, disc sander", "sand paper, disc sander, filer"], correct: 1 },
+        { question: "📐 Cross filing is when file movement is ______ to file. Draw filing is when file movement is ______ to file.", options: ["parallel, perpendicular", "perpendicular, parallel"], correct: 0 },
         { question: "🤎 ____ filing reshapes, ____ smoothens.", options: ["draw, cross", "cross, draw"], correct: 1 },
         { question: "📏 First, mark each piece ___cm long with gaps for sanding.", options: ["20", "19", "18", "17"], correct: 1 },
         { question: "✂️ Mark 45-degree lines to make a _____.", options: ["trapezium", "parallelogram", "rectangle"], correct: 0 },
@@ -98,21 +110,35 @@
 
     let currentQuestionIndex = 0;
     let score = 0;
+    const userAnswers = Array(quizData.length).fill(null);
 
     function initializeProgressBar() {
         const progressBar = document.getElementById('progress-bar');
         quizData.forEach((_, i) => {
             const indicator = document.createElement('div');
             indicator.classList.add('indicator');
+            indicator.dataset.index = i;
             if (i === 0) indicator.classList.add('current');
             progressBar.appendChild(indicator);
         });
+
+        // Add click event listeners to indicators
+        const indicators = document.querySelectorAll('.indicator');
+        indicators.forEach(indicator => {
+            indicator.addEventListener('click', () => {
+                const index = parseInt(indicator.dataset.index);
+                if (userAnswers[index] !== null) {
+                    currentQuestionIndex = index;
+                    loadQuestion();
+                }
+            });
+        });
     }
 
-    function updateProgressBar(isCorrect) {
+    function updateProgressBar(isCorrect, index = currentQuestionIndex) {
         const indicators = document.querySelectorAll('.indicator');
-        indicators[currentQuestionIndex].classList.remove('current');
-        indicators[currentQuestionIndex].classList.add(isCorrect ? 'correct' : 'incorrect');
+        indicators[index].classList.remove('current');
+        indicators[index].classList.add(isCorrect ? 'correct' : 'incorrect');
         if (currentQuestionIndex + 1 < quizData.length) {
             indicators[currentQuestionIndex + 1].classList.add('current');
         }
@@ -128,17 +154,46 @@
             const button = document.createElement('button');
             button.innerText = option;
             button.onclick = () => checkAnswer(idx);
+            // If the question has been answered, display the selected answer
+            if (userAnswers[currentQuestionIndex] !== null) {
+                button.disabled = true;
+                if (idx === userAnswers[currentQuestionIndex]) {
+                    if (idx === questionObj.correct) {
+                        button.classList.add('correct');
+                    } else {
+                        button.classList.add('incorrect');
+                    }
+                }
+                if (idx === questionObj.correct && userAnswers[currentQuestionIndex] !== questionObj.correct) {
+                    button.classList.add('correct');
+                }
+            }
             optionsDiv.appendChild(button);
         });
-        document.getElementById('nextBtn').style.display = 'none';
+
+        // Update the 'current' indicator
+        updateIndicatorsVisual();
+
+        // Hide the next button if question is answered
+        if (userAnswers[currentQuestionIndex] !== null) {
+            document.getElementById('nextBtn').style.display = 'inline-block';
+        } else {
+            document.getElementById('nextBtn').style.display = 'none';
+        }
     }
 
     function checkAnswer(selectedIndex) {
         const questionObj = quizData[currentQuestionIndex];
         const options = document.querySelectorAll('#options button');
-        options.forEach(button => button.disabled = true);
+
+        // Prevent multiple answers
+        if (userAnswers[currentQuestionIndex] !== null) return;
 
         const isCorrect = selectedIndex === questionObj.correct;
+        userAnswers[currentQuestionIndex] = selectedIndex;
+
+        options.forEach(button => button.disabled = true);
+
         options[selectedIndex].classList.add(isCorrect ? 'correct' : 'incorrect');
         if (!isCorrect) options[questionObj.correct].classList.add('correct');
 
@@ -149,8 +204,8 @@
     }
 
     function nextQuestion() {
-        currentQuestionIndex++;
-        if (currentQuestionIndex < quizData.length) {
+        if (currentQuestionIndex < quizData.length - 1) {
+            currentQuestionIndex++;
             loadQuestion();
         } else {
             showResults();
@@ -159,8 +214,19 @@
 
     function showResults() {
         document.getElementById('question-container').innerHTML = '';
+        document.getElementById('options').innerHTML = '';
         document.getElementById('nextBtn').style.display = 'none';
         document.getElementById('result').innerText = `You scored ${score} out of ${quizData.length}.`;
+    }
+
+    function updateIndicatorsVisual() {
+        const indicators = document.querySelectorAll('.indicator');
+        indicators.forEach((indicator, idx) => {
+            indicator.classList.remove('current');
+            if (idx === currentQuestionIndex) {
+                indicator.classList.add('current');
+            }
+        });
     }
 
     initializeProgressBar();
