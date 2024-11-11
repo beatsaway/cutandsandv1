@@ -58,6 +58,7 @@
             background-color: #d2b48c;
             margin: 2px;
             border-radius: 50%;
+            cursor: pointer; /* Added cursor pointer for indicators */
         }
         .indicator.correct { background-color: #98FB98; }
         .indicator.incorrect { background-color: #FF6347; }
@@ -80,15 +81,14 @@
     const quizData = [
         { question: "🕰️ Our pop art clock has a base made of _____", options: ["pine", "acrylic", "medium density fibre", "medium density fibreboard"], correct: 3 },
         { question: "✏️ We mark the base outline with _____ and make it _____ to use the most out of the MDF piece.", options: ["pencil, as big as possible", "pen, as small as possible", "pencil and ruler, as big as possible", "pen and ruler, as big as possible"], correct: 2 },
-{ question: "📝 We _____ the waste area.", options: ["hash out", "colour", "trace down", "label"], correct: 0 },
+        { question: "📝 We _____ the waste area.", options: ["hash out", "colour", "trace down", "label"], correct: 0 },
         { question: "🪚 We ____ cut on the mark because we’ll sand it to the mark later.", options: ["do", "don't"], correct: 1 },
-
         { question: "🔧 We hold the piece _________ before we cut it with ________.", options: ["as close to the vice as possible, tenon saw", "high in the vice, coping saw", "high in the vice, tenon saw", "as close to the vice as possible, coping saw"], correct: 3 },
         { question: "⏰ We start cutting _____ to ______.", options: ["quickly, make a narrow dent for the blade to fit in", "slowly, make a narrow dent for the blade to fit in", "quickly, finish cut as soon as possible", "slowly, make a wide dent for the blade to fit in"], correct: 1 },
         { question: "📐 We adjust the position of the piece constantly, because", options: ["a) the MDF piece is thin and can wobble easily if it is not close to the vice", "b) we want to have vertical cuts more often, which is easier due to gravity", "c) we want to have horizontal cuts more often, which is easier due to gravity", "a and b", "a, b, and c"], correct: 3 },
-        { question: "🧽 The roughness order of abrasive materials on sanding tools from low to high is ________.", options: ["disc sander, filer, sand paper", "sand paper, filer, disc sander", "filer, sand paper, disc sander", "sand paper, filer, disc sander"], correct: 1 },
-        { question: "📏 Cross filing is when the file movement is ______ to the file. Draw filing is when it is _______ to the file.", options: ["parallel, perpendicular", "perpendicular, parallel"], correct: 1 },
-        { question: "✨ ____ filing is more powerful, for reshaping the material, while ____ filing is for finer smoothing.", options: ["draw, cross", "cross, draw"], correct: 1 },
+        { question: "🧽 The roughness order of abrasive materials on sanding tools from low to high is ________.", options: ["disc sander, filer, sand paper", "sand paper, filer, disc sander", "filer, sand paper, disc sander", "sand paper, disc sander, filer"], correct: 1 },
+        { question: "📏 Cross filing is when the file movement is ______ to the file. Draw filing is when it is _______ to the file.", options: ["parallel, perpendicular", "perpendicular, parallel"], correct: 0 },
+        { question: "✨ ____ filing is more powerful, for reshaping the material, while ____ filing is for finer smoothening.", options: ["draw, cross", "cross, draw"], correct: 1 },
         { question: "⚠️ When you sand something very small at the disc sander, you __________", options: ["hold it with your fingers carefully", "use sticks to hold it indirectly"], correct: 1 },
         { question: "👕 We wear the personal protective equipment (PPE) _____ to protect our body from _______.", options: ["apron, projectile debris and harmful substance", "ear defender, loud noises", "ear defender, projectile debris and harmful substance", "apron, dirt"], correct: 0 },
         { question: "🕶️ The personal protective equipment (PPE) ______ protects our eyes at the disc sander.", options: ["apron, projectile debris", "ear defender", "goggles", "safety goggles"], correct: 3 },
@@ -97,6 +97,7 @@
 
     let currentQuestionIndex = 0;
     let score = 0;
+    let userAnswers = new Array(quizData.length).fill(null); // Store user answers
 
     function initializeProgressBar() {
         const progressBar = document.getElementById('progress-bar');
@@ -104,6 +105,7 @@
             const indicator = document.createElement('div');
             indicator.classList.add('indicator');
             if (i === 0) indicator.classList.add('current');
+            indicator.addEventListener('click', () => gotoQuestion(i)); // Make indicators clickable
             progressBar.appendChild(indicator);
         });
     }
@@ -126,10 +128,28 @@
         questionObj.options.forEach((option, idx) => {
             const button = document.createElement('button');
             button.innerText = option;
-            button.onclick = () => checkAnswer(idx);
             optionsDiv.appendChild(button);
+
+            if (userAnswers[currentQuestionIndex] !== null) {
+                // Question has been answered
+                button.disabled = true;
+                if (idx === questionObj.correct) {
+                    button.classList.add('correct');
+                }
+                if (idx === userAnswers[currentQuestionIndex] && idx !== questionObj.correct) {
+                    button.classList.add('incorrect');
+                }
+            } else {
+                // Question not answered yet
+                button.onclick = () => checkAnswer(idx);
+            }
         });
-        document.getElementById('nextBtn').style.display = 'none';
+
+        if (userAnswers[currentQuestionIndex] !== null) {
+            document.getElementById('nextBtn').style.display = 'inline-block';
+        } else {
+            document.getElementById('nextBtn').style.display = 'none';
+        }
     }
 
     function checkAnswer(selectedIndex) {
@@ -141,6 +161,7 @@
         options[selectedIndex].classList.add(isCorrect ? 'correct' : 'incorrect');
         if (!isCorrect) options[questionObj.correct].classList.add('correct');
 
+        userAnswers[currentQuestionIndex] = selectedIndex; // Store the user's answer
         updateProgressBar(isCorrect);
         if (isCorrect) score++;
 
@@ -153,6 +174,13 @@
             loadQuestion();
         } else {
             showResults();
+        }
+    }
+
+    function gotoQuestion(index) {
+        if (userAnswers[index] !== null) {
+            currentQuestionIndex = index;
+            loadQuestion();
         }
     }
 
